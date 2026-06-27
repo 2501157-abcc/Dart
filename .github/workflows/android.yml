@@ -37,10 +37,11 @@ jobs:
         run: |
           PROJECT_DIR=$(find . -name "project.godot" -exec dirname {} \;)
           cd $PROJECT_DIR
-          godot --headless --export-release "Android" ../build/android/BowleraramaXR.apk
+          # 生成されるAPKファイル名を一律で「game.apk」に指定してエクスポート
+          godot --headless --export-release "Android" ../build/android/game.apk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: BowleraramaXR-Android-APK
-          path: build/android/BowleraramaXR.apk
+          path: build/android/game.apk
