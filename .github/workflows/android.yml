@@ -13,6 +13,12 @@ jobs:
         with:
           lfs: true
 
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
@@ -29,7 +35,6 @@ jobs:
 
       - name: Android Export
         run: |
-          # フォルダ階層を自動で探してGodotエクスポートを実行
           PROJECT_DIR=$(find . -name "project.godot" -exec dirname {} \;)
           cd $PROJECT_DIR
           godot --headless --export-release "Android" ../build/android/BowleraramaXR.apk
