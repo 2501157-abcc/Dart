@@ -4,17 +4,41 @@ on: [workflow_dispatch]
 jobs:
   export-android:
     name: Android Export
-    runs-on: ubuntu-latest
-    # 最初からAndroid SDK（道具箱）がすべて同梱されている環境に変更します
-    container:
-      image: barichello/godot-ci:4.2.1-android
+    runs-on: ubuntu-latest  # ややこしいコンテナを廃止し、標準Linuxで直接動かします
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           lfs: true
 
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Godot Engine & Templates
+        run: |
+          # Godot本体のダウンロード
+          wget https://github.com/godotengine/godot/releases/download/4.2.1-stable/Godot_v4.2.1-stable_linux.x86_64.zip
+          unzip Godot_v4.2.1-stable_linux.x86_64.zip
+          mv Godot_v4.2.1-stable_linux.x86_64 /usr/local/bin/godot
+          chmod +x /usr/local/bin/godot
+          
+          # エクスポートテンプレートの配置
+          mkdir -p ~/.local/share/godot/export_templates/4.2.1.stable
+          wget https://github.com/godotengine/godot/releases/download/4.2.1-stable/Godot_v4.2.1-stable_export_templates.tpz
+          unzip Godot_v4.2.1-stable_export_templates.tpz
+          mv templates/* ~/.local/share/godot/export_templates/4.2.1.stable/
+
       - name: Android Export
+        env:
+          # 標準Linux環境なので、これで確実にSDKの場所がGodotに伝わります！
+          GODOT_ANDROID_SDK_PATH: ${{ env.ANDROID_HOME }}
         run: |
           # 1. project.godot があるフォルダを探す
           PROJECT_DIR=$(find . -name "project.godot" -exec dirname {} \;)
@@ -25,15 +49,12 @@ jobs:
             cp "$PRESETS_SRC" "$PROJECT_DIR/export_presets.cfg"
           fi
           
-          # 3. プロジェクトのディレクトリに移動
+          # 3. プロジェクトのディレクトリに移動してビルド
           cd "$PROJECT_DIR"
-          
-          # 4. エクスポート用のディレクトリを作成し、そこへ出力する
-          mkdir -p build/Android
-          godot --headless --export-release "Android" build/Android/game.apk
+          godot --headless --export-release "Android" game.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: BowleraramaXR-Android-APK
-          path: "**/build/Android/game.apk"
+          path: "**/game.apk"
