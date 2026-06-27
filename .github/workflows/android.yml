@@ -30,18 +30,17 @@ jobs:
           mv templates/* ~/.local/share/godot/export_templates/4.2.1.stable/
           rm -f Godot_v4.2.1-stable_export_templates.tpz
 
-      - name: Create Export Directory
-        run: mkdir -p build/android
-
       - name: Android Export
         run: |
+          # project.godotがあるフォルダを探して移動
           PROJECT_DIR=$(find . -name "project.godot" -exec dirname {} \;)
-          cd $PROJECT_DIR
-          # 生成されるAPKファイル名を一律で「game.apk」に指定してエクスポート
-          godot --headless --export-release "Android" ../build/android/game.apk
+          cd "$PROJECT_DIR"
+          # その場に「game.apk」としてエクスポート
+          godot --headless --export-release "Android" game.apk
 
-      - name: Upload Artifact
+      - name: Find and Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: BowleraramaXR-Android-APK
-          path: build/android/game.apk
+          # リポジトリ内のどこに生成されても、自動で見つけてアップロードする指定
+          path: "**/game.apk"
