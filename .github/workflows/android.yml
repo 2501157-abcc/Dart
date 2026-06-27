@@ -31,16 +31,25 @@ jobs:
           rm -f Godot_v4.2.1-stable_export_templates.tpz
 
       - name: Android Export
+        env:
+          # GodotにAndroid SDKの場所を強制的に教え込む設定（ここが重要です！）
+          GODOT_ANDROID_SDK_PATH: ${{ env.ANDROID_HOME }}
         run: |
-          # project.godotがあるフォルダを探して移動
+          # 1. project.godot があるフォルダのパスを探す
           PROJECT_DIR=$(find . -name "project.godot" -exec dirname {} \;)
+          
+          # 2. export_presets.cfg を見つけて、project.godot と同じフォルダにコピーする
+          PRESETS_SRC=$(find . -name "export_presets.cfg" | head -n 1)
+          if [ -n "$PRESETS_SRC" ] && [ "$PRESETS_SRC" != "$PROJECT_DIR/export_presets.cfg" ]; then
+            cp "$PRESETS_SRC" "$PROJECT_DIR/export_presets.cfg"
+          fi
+          
+          # 3. プロジェクトフォルダに移動してエクスポートを実行
           cd "$PROJECT_DIR"
-          # その場に「game.apk」としてエクスポート
           godot --headless --export-release "Android" game.apk
 
       - name: Find and Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: BowleraramaXR-Android-APK
-          # リポジトリ内のどこに生成されても、自動で見つけてアップロードする指定
           path: "**/game.apk"
