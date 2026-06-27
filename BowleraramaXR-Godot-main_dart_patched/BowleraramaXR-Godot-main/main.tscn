@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://0hkayjoawtor"]
+
+[ext_resource type="PackedScene" uid="uid://clc5dre31iskm" path="res://addons/godot-xr-tools/xr/start_xr.tscn" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://b0vpc0l2ygmjw" path="res://dart.gd" id="2_0xm2m"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7dm0k"]
+
+[sub_resource type="Sky" id="Sky_ig7tw"]
+sky_material = SubResource("ProceduralSkyMaterial_7dm0k")
+
+[sub_resource type="Environment" id="Environment_0xm2m"]
+background_mode = 1
+background_color = Color(0, 0, 0, 0)
+sky = SubResource("Sky_ig7tw")
+ambient_light_source = 3
+
+[sub_resource type="BoxMesh" id="BoxMesh_m6key"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_m6key"]
+size = Vector3(0.05, 0.05, 0.3)
+
+[node name="Main" type="Node3D" unique_id=522582392]
+
+[node name="StartXR" parent="." unique_id=791340067 instance=ExtResource("1_ig7tw")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=2106851435]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1184160020]
+environment = SubResource("Environment_0xm2m")
+
+[node name="XROrigin3D" type="XROrigin3D" parent="." unique_id=161586860]
+current = true
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D" unique_id=1650910455]
+
+[node name="LeftController" type="XRController3D" parent="XROrigin3D" unique_id=1039133725]
+tracker = &"left_hand"
+
+[node name="RightController" type="XRController3D" parent="XROrigin3D" unique_id=1439645944]
+tracker = &"right_hand"
+
+[node name="Dart" type="RigidBody3D" parent="." unique_id=231315419]
+transform = Transform3D(-0.29648125, 0, 0.95503867, 0, 1, 0, -0.95503867, 0, -0.29648125, 0, 0, 0)
+script = ExtResource("2_0xm2m")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Dart" unique_id=1758178751]
+transform = Transform3D(0.05, 0, 0, 0, 0.05, 0, 0, 0, 0.3, 0, 1, -0.5)
+mesh = SubResource("BoxMesh_m6key")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Dart" unique_id=302639918]
+shape = SubResource("BoxShape3D_m6key")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=70005161]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
