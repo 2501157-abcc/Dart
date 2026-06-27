@@ -5,51 +5,35 @@ jobs:
   export-android:
     name: Android Export
     runs-on: ubuntu-latest
+    # 最初からAndroid SDK（道具箱）がすべて同梱されている環境に変更します
     container:
-      image: barichello/godot-ci:4.2.1
+      image: barichello/godot-ci:4.2.1-android
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Download Export Templates
-        run: |
-          mkdir -p ~/.local/share/godot/export_templates/4.2.1.stable
-          wget https://github.com/godotengine/godot/releases/download/4.2.1-stable/Godot_v4.2.1-stable_export_templates.tpz
-          unzip Godot_v4.2.1-stable_export_templates.tpz
-          mv templates/* ~/.local/share/godot/export_templates/4.2.1.stable/
-          rm -f Godot_v4.2.1-stable_export_templates.tpz
-
       - name: Android Export
-        env:
-          # GodotにAndroid SDKの場所を強制的に教え込む設定（ここが重要です！）
-          GODOT_ANDROID_SDK_PATH: ${{ env.ANDROID_HOME }}
         run: |
-          # 1. project.godot があるフォルダのパスを探す
+          # 1. project.godot があるフォルダを探す
           PROJECT_DIR=$(find . -name "project.godot" -exec dirname {} \;)
           
-          # 2. export_presets.cfg を見つけて、project.godot と同じフォルダにコピーする
+          # 2. export_presets.cfg を同じ場所に確実にコピーする
           PRESETS_SRC=$(find . -name "export_presets.cfg" | head -n 1)
           if [ -n "$PRESETS_SRC" ] && [ "$PRESETS_SRC" != "$PROJECT_DIR/export_presets.cfg" ]; then
             cp "$PRESETS_SRC" "$PROJECT_DIR/export_presets.cfg"
           fi
           
-          # 3. プロジェクトフォルダに移動してエクスポートを実行
+          # 3. プロジェクトのディレクトリに移動
           cd "$PROJECT_DIR"
-          godot --headless --export-release "Android" game.apk
+          
+          # 4. エクスポート用のディレクトリを作成し、そこへ出力する
+          mkdir -p build/Android
+          godot --headless --export-release "Android" build/Android/game.apk
 
-      - name: Find and Upload APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: BowleraramaXR-Android-APK
-          path: "**/game.apk"
+          path: "**/build/Android/game.apk"
